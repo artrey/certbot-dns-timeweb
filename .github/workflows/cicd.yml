@@ -1,12 +1,18 @@
 name: ci-cd
 
 on:
+  pull_request:
+    branches: [ master ]
+  push:
+    branches: [ master ]
   release:
     types: [ published ]
 
 jobs:
   tests:
     runs-on: ubuntu-latest
+    env:
+      POETRY_VIRTUALENVS_CREATE: 'false'
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -17,9 +23,7 @@ jobs:
           python-version: 3.11
 
       - name: Install dependencies
-        run: |
-          pip install poetry
-          poetry install
+        run: pip install poetry && poetry install
 
       - name: Check code style with black
         run: black --check .
@@ -32,33 +36,22 @@ jobs:
 
   publish:
     needs: tests
+    if: github.event_name == 'release' && github.event.action == 'published'
     runs-on: ubuntu-latest
     environment: release
     permissions:
-      contents: write
       id-token: write
     steps:
-      - name: mint API token
-        id: mint-token
-        run: |
-          # retrieve the ambient OIDC token
-          resp=$(curl -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=pypi")
-          oidc_token=$(jq '.value' <<< "${resp}")
+      - name: Check out the repo
+        uses: actions/checkout@v2
 
-          # exchange the OIDC token for an API token
-          resp=$(curl -X POST https://pypi.org/_/oidc/mint-token -d "{\"token\": \"${oidc_token}\"}")
-          api_token=$(jq '.token' <<< "${resp}")
-
-          # mask the newly minted API token, so that we don't accidentally leak it
-          echo "::add-mask::${api_token}"
-
-          # see the next step in the workflow for an example of using this step output
-          echo "api-token=${api_token}" >> "${GITHUB_OUTPUT}"
-
-      - name: Publish PyPi package
-        uses: code-specialist/pypi-poetry-publish@v1
+      - name: Set up python
+        uses: actions/setup-python@v2
         with:
-          ACCESS_TOKEN: ${{ github.token }}
-          PUBLISH_REGISTRY_PASSWORD: ${{ steps.mint-token.outputs.api-token }}
-          PYTHON_VERSION: "3.11"
+          python-version: 3.11
+
+      - name: Building package
+        run: pip install poetry && poetry build
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

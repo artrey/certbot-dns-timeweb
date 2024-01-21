@@ -9,8 +9,6 @@ from typing import Callable
 from certbot.plugins import dns_common
 from timeweb import Timeweb
 
-from certbot import errors
-
 logger = logging.getLogger(__name__)
 
 
