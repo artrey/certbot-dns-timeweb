@@ -61,3 +61,4 @@ jobs:
         with:
           ACCESS_TOKEN: ${{ github.token }}
           PUBLISH_REGISTRY_PASSWORD: ${{ steps.mint-token.outputs.api-token }}
+          PYTHON_VERSION: "3.11"
