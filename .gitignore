@@ -1,0 +1,27 @@
+# Python venv
+venv/
+.venv/
+
+# Environments
+*.env
+
+# Builds
+[Bb]uild/
+.mypy_cache/
+.pytest_cache/
+.coverage
+dist/
+
+# Idea
+.idea/
+__pycache__/
+
+# VS Code
+.vscode/
+
+# OS specific
+.DS_Store
+
+# service assets
+data/
+logs/
