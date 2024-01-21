@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "certbot-dns-timeweb"
-version = "0.0.1"
+version = "1.0.0"
 description = "Timeweb DNS Authenticator plugin for Certbot"
 authors = ["Aleksandr Ivanov <oz.sasha.ivanov@gmail.com>"]
 license = "MIT"
