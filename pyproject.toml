@@ -10,9 +10,6 @@ authors = ["Aleksandr Ivanov <oz.sasha.ivanov@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 
-[tool.poetry-version-plugin]
-source = "init"
-
 [tool.poetry.dependencies]
 python = "^3.10"
 certbot = "^2.8"
