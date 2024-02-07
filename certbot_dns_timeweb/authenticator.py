@@ -8,6 +8,7 @@ from typing import Callable
 
 from certbot.plugins import dns_common
 from timeweb import Timeweb
+from tld import get_fld
 
 logger = logging.getLogger(__name__)
 
@@ -43,20 +44,25 @@ class Authenticator(dns_common.DNSAuthenticator):
         )
 
     def _perform(self, domain: str, validation_name: str, validation: str) -> None:
+        fqdn = self._root_domain(domain)
         response = self._timeweb_client.domains.add_dns_record(
-            fqdn=domain,
+            fqdn=fqdn,
             type="TXT",
             value=validation,
-            subdomain=validation_name.rstrip(domain).rstrip("."),
+            subdomain=validation_name[: -len(fqdn)].rstrip("."),
         )
         self._for_cleanup[validation_name].append(response.dns_record.id)
 
     def _cleanup(self, domain: str, validation_name: str, validation: str) -> None:
         if validation_name not in self._for_cleanup:
             return
+        fqdn = self._root_domain(domain)
         for record_id in self._for_cleanup.pop(validation_name):
-            self._timeweb_client.domains.delete_dns_record(domain, record_id)
+            self._timeweb_client.domains.delete_dns_record(fqdn, record_id)
 
     @functools.cached_property
     def _timeweb_client(self) -> Timeweb:
         return Timeweb(token=self.credentials.conf("api_key"))
+
+    def _root_domain(self, domain: str) -> str:
+        return get_fld(domain, fix_protocol=True)

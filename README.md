@@ -32,3 +32,15 @@ certbot certonly --authenticator dns-timeweb \
 # configuration file. You may place him in any place.
 dns_timeweb_api_key = XXXXXXXXXXXXXXXXXXX
 ```
+
+## Development
+
+### Local debugging
+
+1. Install the plugin in developer mode
+
+```bash
+pip install --editable ./
+```
+
+2. Run (or debug) `main.py` script
