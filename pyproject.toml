@@ -12,7 +12,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-certbot = "^2.8"
+certbot = "^5.4"
 timeweb-cloud = "^0.12.2"
 tld = "^0.13"
 
