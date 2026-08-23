@@ -7,10 +7,19 @@ venv/
 
 # Builds
 [Bb]uild/
+dist/
+*.egg-info/
+
+# Caches
 .mypy_cache/
 .pytest_cache/
+.ruff_cache/
 .coverage
-dist/
+coverage.xml
+
+# Lock file: this is a library, CI resolves dependencies fresh
+uv.lock
+poetry.lock
 
 # Idea
 .idea/

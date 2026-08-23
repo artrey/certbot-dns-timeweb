@@ -1,129 +1,83 @@
 [build-system]
-requires = ["poetry-core>=1.6"]
+requires = ["poetry-core>=2.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry]
+[project]
 name = "certbot-dns-timeweb"
-version = "1.0.1"
-description = "Timeweb DNS Authenticator plugin for Certbot"
-authors = ["Aleksandr Ivanov <oz.sasha.ivanov@gmail.com>"]
+version = "2.0.0"
+description = "Timeweb Cloud DNS Authenticator plugin for Certbot"
+authors = [{ name = "Aleksandr Ivanov", email = "oz.sasha.ivanov@gmail.com" }]
 license = "MIT"
+license-files = ["LICENSE"]
 readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["certbot", "letsencrypt", "dns", "dns-01", "timeweb", "timeweb-cloud", "acme"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Plugins",
+  "Intended Audience :: System Administrators",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Internet :: WWW/HTTP",
+  "Topic :: Security",
+  "Topic :: System :: Systems Administration",
+]
+dependencies = [
+  "certbot>=2.8",
+  "requests>=2.25.1",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-certbot = "^2.8"
-timeweb-cloud = "^0.12.2"
-tld = "^0.13"
+[project.urls]
+Homepage = "https://github.com/artrey/certbot-dns-timeweb"
+Repository = "https://github.com/artrey/certbot-dns-timeweb"
+Issues = "https://github.com/artrey/certbot-dns-timeweb/issues"
+Changelog = "https://github.com/artrey/certbot-dns-timeweb/blob/master/CHANGELOG.md"
 
-[tool.poetry.dev-dependencies]
-black = "^23.3"
-isort = "^5.11"
-flake8 = "^6.1"
-flake8-black = "*"
-flake8-pyproject = "*"
-
-[tool.poetry.plugins."certbot.plugins"]
+[project.entry-points."certbot.plugins"]
 dns-timeweb = "certbot_dns_timeweb.authenticator:Authenticator"
 
-[tool.black]
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "responses>=0.25",
+  "ruff>=0.14",
+]
+
+[tool.poetry]
+packages = [{ include = "certbot_dns_timeweb" }]
+
+[tool.ruff]
 line-length = 120
-exclude = '''
-/(
-  # Copied from: https://github.com/psf/black/blob/master/pyproject.toml
-  | \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | venv
-  | _build
-  | build
-  | dist
-)/
-'''
+target-version = "py310"
+extend-exclude = [".venv", "venv", "dist", "build", "data"]
 
-[tool.flake8]
-# Base flake8 configuration:
-# https://flake8.pycqa.org/en/latest/user/configuration.html
-show-source = true
-statistics = false
-doctests = true
-
-# darglint configuration:
-# https://github.com/terrencepreilly/darglint
-strictness = 'long'
-docstring-style = 'numpy'
-
-# Plugins:
-max-complexity = 8
-max-line-length = 120
-max-methods = 9
-
-# Disable some pydocstyle checks:
-# Exclude some pydoctest checks globally:
-ignore = 'W503'
-
-# Due to this, Flake8 will raise E203 whitespace before ':' warnings.
-# Since this warning is not PEP 8 compliant, Flake8 should be configured to ignore it
-extend-ignore = 'E203'
-
-# Excluding some directories:
-exclude = [
-  '.git',
-  '__pycache__',
-  '.venv',
-  'venv',
-  '.eggs',
-  '*.egg',
+[tool.ruff.lint]
+select = [
+  "E",    # pycodestyle errors
+  "W",    # pycodestyle warnings
+  "F",    # pyflakes
+  "I",    # isort
+  "B",    # flake8-bugbear
+  "C4",   # flake8-comprehensions
+  "UP",   # pyupgrade
+  "RUF",  # ruff-specific
 ]
 
-# Ignoring some errors in some files:
-per-file-ignores = [
-  # Enable `assert` keyword and magic numbers for tests:
-  'tests/*.py: S101, WPS114, WPS226, WPS432',
-]
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
 
-[tool.isort]
-profile = 'black'
-include_trailing_comma = true
-use_parentheses = true
-# See https://github.com/timothycrosley/isort#multi-line-output-modes
-multi_line_output = 3
-line_length = 120
+[tool.ruff.lint.isort]
+known-first-party = ["certbot_dns_timeweb"]
 
 [tool.pytest.ini_options]
-# Directories that are not visited by pytest collector:
-norecursedirs = [
-  '.git',
-  '.github',
-  '.pytest_cache',
-  '.tox',
-  '.vscode',
-  '.venv',
-  'venv',
-  '__pycache__',
-  'hooks',
-  '*.egg',
-  '.eggs',
-  'dist',
-  'build',
-  'docs',
-]
+testpaths = ["tests"]
+python_files = "test_*.py"
+addopts = ["--strict-markers", "--tb=short"]
+filterwarnings = ["error", "ignore::ImportWarning:importlib"]
 
-# Extra options:
-addopts = [
-  '--strict-markers',
-  '--tb=short',
-  '--doctest-modules',
-]
-
-testpaths = 'tests/'
-
-python_files = 'test_*.py'
-
-filterwarnings = [
-  'error',
-  'ignore::ImportWarning:importlib',
-]
+[tool.coverage.run]
+source = ["certbot_dns_timeweb"]

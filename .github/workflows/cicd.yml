@@ -2,56 +2,71 @@ name: ci-cd
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [master]
   push:
-    branches: [ master ]
+    branches: [master]
   release:
-    types: [ published ]
+    types: [published]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Lint with ruff
+        run: uv run --group dev ruff check --output-format=github .
+
+      - name: Check formatting with ruff
+        run: uv run --group dev ruff format --check --diff .
+
   tests:
     runs-on: ubuntu-latest
-    env:
-      POETRY_VIRTUALENVS_CREATE: 'false'
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Set up python
-        uses: actions/setup-python@v2
+      - uses: astral-sh/setup-uv@v6
         with:
-          python-version: 3.11
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
-        run: pip install poetry && poetry install
+      - name: Install the plugin with the latest certbot
+        run: |
+          uv venv
+          uv pip install -e . --group dev --upgrade certbot
 
-      - name: Check code style with black
-        run: black --check .
+      - name: Run tests
+        run: uv run --no-sync pytest --cov --cov-report=term-missing
 
-      - name: Check imports ordering with isort
-        run: isort -c .
-
-      - name: Lint with flake8
-        run: flake8 .
+      - name: Check that certbot discovers the plugin
+        run: uv run --no-sync certbot plugins --config-dir /tmp/cb --work-dir /tmp/cb --logs-dir /tmp/cb | grep dns-timeweb
 
   publish:
-    needs: tests
+    needs: [lint, tests]
     if: github.event_name == 'release' && github.event.action == 'published'
     runs-on: ubuntu-latest
     environment: release
     permissions:
       id-token: write
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Set up python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.11
+      - uses: astral-sh/setup-uv@v6
 
-      - name: Building package
-        run: pip install poetry && poetry build
+      - name: Build the package
+        run: uv build
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
